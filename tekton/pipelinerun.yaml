@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: <pipeline-run-name>
+  namespace: <API CONNECT NAMESPACE>
+spec:
+  pipelineRef:
+    name: <pipeline-name>
+  workspaces:
+    - name: git-source
+      persistentvolumeclaim:
+        claimName: <PVC-NAME>

@@ -1,0 +1,64 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: apic-pub-sub
+    namespace: <API CONNECT NAMESPACE>
+spec:
+  params:
+    - name: apic-source
+      type: string
+    - name: apic-infrastrucure
+      type: string
+    - name: apic-release-name
+      type: string
+    - name: provider-organisation
+      type: string
+    - name: consumer-organisation
+      type: string
+    - name: catalog-name
+      type: string
+    - name: app-name
+      type: string
+    - name: env
+      type: string
+  steps:
+    - args:
+        - '-c'
+        - |
+          lint-openapi api.yaml -s
+      command:
+        - /bin/sh
+      image: 'jamescooke/openapi-validator:latest'
+      name: lint
+      resources: {}
+      workingDir: $(workspaces.output.path)/apic-source
+    - args:
+        - '-c'
+        - |
+
+          cat token.json
+
+          chmod +x $(params.apic-infrastrucure)/scripts/get-bearer-token.sh 
+          chmod +x $(params.apic-infrastrucure)/scripts/pub-sub-apic.sh
+
+          ./$(params.apic-infrastrucure)/scripts/pub-sub-apic.sh \
+          -c apic-restapi-client-secret \
+          -s apic-api-manager-credentials \
+          -r $(params.apic-release-name) \
+          -d false \
+          -e $(params.env) \
+          -a $(params.app-name) \
+          -b $(params.catalog-name) \
+          -o $(params.consumer-organisation) \
+          -p $(params.provider-organisation) \
+          -f $(params.apic-source)/api.yaml \
+          -F $(params.apic-source)/product.yaml 
+      command:
+        - /bin/sh
+      image: dalli92/openshift-cli-with-jq
+      name: apic-pub-sub
+      resources: {}
+      workingDir: $(workspaces.output.path)
+  workspaces:
+    - description: The git repo will be cloned onto the volume backing this workspace
+      name: output

@@ -1,0 +1,98 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: deploy-apic
+  namespace: <API CONNECT NAMESPACE>
+spec:
+  params:
+    - default: <GIT repo that holds the api + product yamls>
+      description: Git repository of apic code to be deployed
+      name: apic-source-repo-url
+      type: string
+    - default: master
+      name: apic-source-repo-revision
+      type: string
+    - default: apic-source
+      name: apic-source
+      type: string
+
+    - default:  <GIT repo that holds the infrastructure code>
+      description: Git repository of apic infrastrucure
+      name: apic-infrastrucure-repo-url
+      type: string
+    - default: master
+      name: apic-infrastrucure-repo-revision
+      type: string
+    - default: apic-infrastrucure
+      name: apic-infrastrucure
+      type: string
+
+    - default: <APIC CLUSTER RELEASE NAME>
+      name: apic-release-name
+      type: string
+  tasks:
+    - name: clone-apic-source
+      params:
+        - name: url
+          value: $(params.apic-source-repo-url)
+        - name: revision
+          value: $(params.apic-source-repo-revision)
+        - name: subdirectory
+          value: $(params.apic-source)
+        - name: deleteExisting
+          value: 'true'
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: git-source
+
+    - name: clone-apic-infrastrucure
+      params:
+        - name: url
+          value: $(params.apic-infrastrucure-repo-url)
+        - name: revision
+          value: $(params.apic-infrastrucure-repo-revision)
+        - name: subdirectory
+          value: $(params.apic-infrastrucure)
+        - name: deleteExisting
+          value: 'true'
+      runAfter:
+        - clone-apic-source
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: git-source
+
+    - name: apic-pub-sub
+      params:
+        - name: apic-source
+          value: $(params.apic-source)
+        - name: apic-infrastrucure
+          value: $(params.apic-infrastrucure)
+        - name: apic-release-name
+          value: $(params.apic-release-name)
+        - name: provider-organisation
+          value: testorg
+        - name: consumer-organisation
+          value: test0rg
+        - name: catalog-name
+          value: dev
+        - name: app-name
+          value: mobileapp
+        - name: env
+          value: dev
+      runAfter:
+        - clone-apic-infrastrucure
+      taskRef:
+        kind: Task
+        name: apic-pub-sub
+      workspaces:
+        - name: output
+          workspace: git-source
+  workspaces:
+    - description: The git repo
+      name: git-source
