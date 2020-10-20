@@ -1,4 +1,12 @@
-###Prerequisites
+## Repo information
+
+This is a work in progress.
+
+The pipeline should have two repos - apic-infrastructure and apic-source. For clarity I have uploaded the contents of these repos in the folder external-repos.
+When creating the pipelines, these should be separate repos.
+
+
+## Prerequisites
 
 * Openshift cluster with Openshift pipelines operator installed.
 https://github.com/openshift/tektoncd-pipeline-operator 
@@ -8,7 +16,7 @@ The CLI and credentials for the CLI can be downloaded from API/Cloud Manager UI 
 
 ![Download toolkit](images/toolkit.png)
 
-###Setup Instructions:
+## Setup Instructions:
 
 1. Create a admin user that can login to cloud manager
 
@@ -66,7 +74,7 @@ The CLI and credentials for the CLI can be downloaded from API/Cloud Manager UI 
     oc create secret generic apic-api-manager-credentials \ --from-literal=client_id=pipeline \ --from-literal=client_secret=pipelinesecret \ --type=Opaque
     ```
 
-#### Useful commands:
+### Useful commands:
 
 * Get admin realms
 
